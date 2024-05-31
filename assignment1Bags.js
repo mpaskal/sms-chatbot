@@ -126,7 +126,7 @@ module.exports = class BagsOrder extends Order {
           this.sColour1 == this.sColour2
         ) {
           aReturn.push(
-            `${this.sJacket1}, size: ${this.sSize1}, colour: ${this.sColour1} x 2 for $${this.priceBeforeTax}`
+            `${this.sJacket1} x 2, size: ${this.sSize1}, colour: ${this.sColour1} for $${this.priceBeforeTax}`
           );
         } else {
           aReturn.push(
