@@ -2,17 +2,19 @@ const Order = require("./assignment1Order");
 
 const VARSITY_JACKET_PRICE = 425.0;
 const FLEECE_JACKET_PRICE = 125.0;
+const COLLEGE_CAP_PRICE = 30.0;
+
+const TAX_RATE = 0.13;
 const OrderState = Object.freeze({
   WELCOMING: Symbol("welcoming"),
   JACKET1: Symbol("jacket1"),
   JACKET2: Symbol("jacket2"),
+  ADVERTISEMENT: Symbol("advertisement"),
   SIZE: Symbol("size"),
   SIZE2: Symbol("size2"),
   COLOUR: Symbol("Colour"),
   COLOUR2: Symbol("Colour2"),
-  PRICE1: Symbol("Price1"),
-  PRICE2: Symbol("Price2"),
-  PROTECTOR: Symbol("Protector"),
+  ADDITION: Symbol("Addition"),
 });
 
 module.exports = class BagsOrder extends Order {
@@ -25,14 +27,9 @@ module.exports = class BagsOrder extends Order {
     this.sSize2 = "";
     this.sColour1 = "";
     this.sColour2 = "";
-    this.sPriceV = 425;
-    this.sPriceF = 125;
     this.sPrice1 = 0.0;
     this.sPrice2 = 0.0;
-    this.sProtector = "";
-    this.sProtectorPrice = 30;
     this.priceBeforeTax = 0.0;
-    this.taxRate = 0.13;
     this.tax = 0.0;
     this.totalPrice = 0.0;
   }
@@ -41,7 +38,7 @@ module.exports = class BagsOrder extends Order {
     switch (this.stateCur) {
       case OrderState.WELCOMING:
         this.stateCur = OrderState.JACKET;
-        aReturn.push("Welcome to Conestoga's Jackets.");
+        aReturn.push("Welcome to Conestoga's Jackets!");
         aReturn.push("We have a variety of jackets available.");
         aReturn.push("Which one you love most?");
         aReturn.push(
@@ -73,16 +70,29 @@ module.exports = class BagsOrder extends Order {
         );
         break;
       case OrderState.COLOUR:
-        this.stateCur = OrderState.JACKET2;
+        this.stateCur = OrderState.ADVERTISEMENT;
         this.sColour1 = sInput;
         aReturn.push("Awesome choice!");
         aReturn.push("&#127880;&#127880;&#127880;&#127880;&#127880;\n");
         aReturn.push(
-          `For the second jacket your price is 150% from the original one! Only in the college! Unique offer!`
+          `For the second jacket your price is 150% from the original one! Only in the college! 
+          Outstanding offer! You will be double protected!
+          Select the second jacket now! Are you ready? (y/n)`
         );
-        aReturn.push("Which one will make you happy?");
-        aReturn.push("Select option 'a' for Varsity jacket");
-        aReturn.push("Select option 'b' for Fleece jacket");
+        break;
+      case OrderState.ADVERTISEMENT:
+        if (sInput.toLowerCase() == "n") {
+          this.stateCur = OrderState.ADDITION;
+          aReturn.push(
+            `Make your awesome jacket unique with the best College Cap for only $${COLLEGE_CAP_PRICE}!
+            Would you like to add it to your order? (y/n)`
+          );
+        } else {
+          this.stateCur = OrderState.JACKET2;
+          aReturn.push("Which one will make you happy?");
+          aReturn.push("Select option 'a' for Varsity jacket");
+          aReturn.push("Select option 'b' for Fleece jacket");
+        }
         break;
       case OrderState.JACKET2:
         this.stateCur = OrderState.SIZE2;
@@ -106,16 +116,15 @@ module.exports = class BagsOrder extends Order {
         );
         break;
       case OrderState.COLOUR2:
-        this.stateCur = OrderState.PROTECTOR;
+        this.stateCur = OrderState.ADDITION;
         this.sColour2 = sInput;
         aReturn.push(
-          `Safe your awesome jackets with the best College Cap for only $${this.sProtectorPrice}!`
+          `Make your awesome jackets unique with the best College Cap for only $${COLLEGE_CAP_PRICE}!
+          Would you like to add it to your order? (y/n)`
         );
         break;
-      case OrderState.PROTECTOR:
+      case OrderState.ADDITION:
         this.isDone(true);
-        this.sProtector = sInput;
-
         aReturn.push("Fantastic choice!");
         aReturn.push("&#127880; &#127880; &#127880; &#127880; &#127880;\n");
         aReturn.push("Your order is complete.");
@@ -126,21 +135,25 @@ module.exports = class BagsOrder extends Order {
           this.sColour1 == this.sColour2
         ) {
           aReturn.push(
-            `${this.sJacket1} x 2, size: ${this.sSize1}, colour: ${this.sColour1} for $${this.priceBeforeTax}`
+            `${this.sJacket1}, size: ${this.sSize1}, colour: ${this.sColour1} x 2 for $${this.priceBeforeTax} for both`
           );
-        } else {
+        } else if (this.sJacket2 != "") {
           aReturn.push(
             `${this.sJacket1}, size: ${this.sSize1}, colour: ${this.sColour1} for $${this.sPrice1}`
           );
           aReturn.push(
             `${this.sJacket2}, size: ${this.sSize2}, colour: ${this.sColour2} for $${this.sPrice2}`
           );
+        } else {
+          aReturn.push(
+            `${this.sJacket1}, size: ${this.sSize1}, colour: ${this.sColour1} for $${this.sPrice1}`
+          );
         }
-        if (this.sProtector.toLowerCase() != "no") {
-          aReturn.push(`College Cap for $${this.sProtectorPrice}`);
-          this.priceBeforeTax += parseFloat(this.sProtectorPrice);
+        if (sInput.toLowerCase() != "n") {
+          aReturn.push(`College Cap for $${COLLEGE_CAP_PRICE}`);
+          this.priceBeforeTax += COLLEGE_CAP_PRICE;
         }
-        this.tax = parseFloat(this.priceBeforeTax) * parseFloat(this.taxRate);
+        this.tax = parseFloat(this.priceBeforeTax) * parseFloat(TAX_RATE);
         this.totalPrice = parseFloat(this.priceBeforeTax + this.tax);
         aReturn.push(`Price before tax: $${this.priceBeforeTax.toFixed(2)}`);
         aReturn.push(`Tax: $${this.tax.toFixed(2)} (13%)`);
